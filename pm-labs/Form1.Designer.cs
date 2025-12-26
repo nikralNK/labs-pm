@@ -70,7 +70,7 @@
             txtXn.Name = "txtXn";
             txtXn.Size = new Size(100, 23);
             txtXn.TabIndex = 3;
-            txtXn.Text = "3.35";
+            txtXn.Text = "3,35";
 
             lblXk.AutoSize = true;
             lblXk.Location = new Point(20, 90);
@@ -83,7 +83,7 @@
             txtXk.Name = "txtXk";
             txtXk.Size = new Size(100, 23);
             txtXk.TabIndex = 5;
-            txtXk.Text = "36.26";
+            txtXk.Text = "36,26";
 
             lblXh.AutoSize = true;
             lblXh.Location = new Point(20, 125);
@@ -96,7 +96,7 @@
             txtXh.Name = "txtXh";
             txtXh.Size = new Size(100, 23);
             txtXh.TabIndex = 7;
-            txtXh.Text = "0.2";
+            txtXh.Text = "0,2";
 
             btnCalculate.Location = new Point(20, 165);
             btnCalculate.Name = "btnCalculate";
