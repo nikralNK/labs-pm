@@ -1,774 +1,289 @@
+using System;
+using System.Windows.Forms;
+using System.Globalization;
+
 namespace pm_labs
 {
     public partial class Form1 : Form
     {
-        private int[] array;
-        private int[,] matrix;
-        private int rows, cols;
+        public static double xn, xk, xh, a;
+        public static Color dgvForeColor = Color.Black;
+        public static Color dgvBackColor = Color.White;
+        public static Color dgvGridColor = Color.Black;
+        public static Color chartLineColor = Color.Blue;
+        public static Color chartBackColor = Color.White;
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void btnGenerate1D_Click(object sender, EventArgs e)
+        private double CalculateFunction(double x)
         {
-            if (string.IsNullOrWhiteSpace(txtN.Text))
+            if (x <= 0)
             {
-                MessageBox.Show("Введите размер массива", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return Math.Pow(x, 5) * (1 / Math.Tan(2 * Math.Pow(x, 3)));
             }
-
-            if (!int.TryParse(txtN.Text, out int n) || n <= 0 || n > 1000)
+            else if (x > 0 && x <= 5)
             {
-                MessageBox.Show("Размер массива должен быть числом от 1 до 1000", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return 5 / (Math.Tan(2 * x + 3) + 1);
             }
-
-            array = new int[n];
-            Random rand = new Random();
-            lstArray.Items.Clear();
-
-            for (int i = 0; i < n; i++)
+            else
             {
-                array[i] = rand.Next(-100, 101);
-                lstArray.Items.Add(array[i]);
+                return Math.Pow(x, 2) * Math.Exp(-x);
             }
-
-            txtResults1D.Clear();
         }
 
-        private void btnAnalyze1D_Click(object sender, EventArgs e)
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (array == null || array.Length == 0)
+            if (tabControl1.SelectedIndex == 1)
             {
-                MessageBox.Show("Сначала сгенерируйте массив", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                GenerateTable();
+            }
+            else if (tabControl1.SelectedIndex == 2)
+            {
+                GenerateChart();
+            }
+        }
+
+        private void GenerateTable()
+        {
+            if (!ValidateInputs())
                 return;
+
+            dgvResults.Rows.Clear();
+
+            double x = xn;
+            double ymax = double.MinValue;
+            double ymin = double.MaxValue;
+
+            while (x <= xk)
+            {
+                double y = CalculateFunction(x);
+
+                dgvResults.Rows.Add(x.ToString("F4"), y.ToString("F6"));
+
+                if (y > ymax) ymax = y;
+                if (y < ymin) ymin = y;
+
+                x += xh;
             }
 
-            txtResults1D.Clear();
+            txtYmax.Text = ymax.ToString("F6");
+            txtYmin.Text = ymin.ToString("F6");
 
-            if (rbTask1D_1.Checked)
-                Task1D_1();
-            else if (rbTask1D_2.Checked)
-                Task1D_2();
-            else if (rbTask1D_3.Checked)
-                Task1D_3();
-            else if (rbTask1D_4.Checked)
-                Task1D_4();
-            else if (rbTask1D_5.Checked)
-                Task1D_5();
-            else if (rbTask1D_6.Checked)
-                Task1D_6();
-            else if (rbTask1D_7.Checked)
-                Task1D_7();
-            else if (rbTask1D_8.Checked)
-                Task1D_8();
-            else if (rbTask1D_9.Checked)
-                Task1D_9();
-            else if (rbTask1D_10.Checked)
-                Task1D_10();
+            ApplyTableColors();
         }
 
-        private void Task1D_1()
+        private void GenerateChart()
         {
-            int negativeCount = 0;
-            int positiveCount = 0;
-            int sum = 0;
+            if (!ValidateInputs())
+                return;
 
-            foreach (int num in array)
+            chart1.Series[0].Points.Clear();
+
+            double x = xn;
+
+            while (x <= xk)
             {
-                if (num < 0)
-                    negativeCount++;
-                else if (num > 0)
-                    positiveCount++;
-                sum += num;
+                double y = CalculateFunction(x);
+                chart1.Series[0].Points.AddXY(x, y);
+                x += xh;
             }
 
-            double average = (double)sum / array.Length;
-
-            txtResults1D.Text = $"Количество отрицательных чисел: {negativeCount}\r\n";
-            txtResults1D.Text += $"Количество положительных чисел: {positiveCount}\r\n";
-            txtResults1D.Text += $"Среднее арифметическое всех чисел: {average:F2}";
+            ApplyChartColors();
         }
 
-        private void Task1D_2()
+        private bool ValidateInputs()
         {
-            int[] evenIndices = new int[array.Length / 2 + array.Length % 2];
-            int[] oddIndices = new int[array.Length / 2];
-
-            int evenSum = 0;
-            int oddSum = 0;
-
-            for (int i = 0; i < array.Length; i++)
+            if (!TryParseDouble(txtXn.Text, out xn))
             {
-                if (i % 2 == 0)
+                MessageBox.Show("Некорректное значение Xn", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tabControl1.SelectedIndex = 0;
+                return false;
+            }
+
+            if (!TryParseDouble(txtXk.Text, out xk))
+            {
+                MessageBox.Show("Некорректное значение Xk", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tabControl1.SelectedIndex = 0;
+                return false;
+            }
+
+            if (!TryParseDouble(txtXh.Text, out xh) || xh <= 0)
+            {
+                MessageBox.Show("Шаг должен быть положительным числом", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tabControl1.SelectedIndex = 0;
+                return false;
+            }
+
+            if (!TryParseDouble(txtA.Text, out a))
+            {
+                MessageBox.Show("Некорректное значение параметра a", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tabControl1.SelectedIndex = 0;
+                return false;
+            }
+
+            if (xn >= xk)
+            {
+                MessageBox.Show("Начальное значение должно быть меньше конечного", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tabControl1.SelectedIndex = 0;
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool TryParseDouble(string text, out double result)
+        {
+            text = text.Replace(',', '.');
+            return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
+        }
+
+        private void ValidateNumberInput(object sender, KeyPressEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox == null) return;
+
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            if (e.KeyChar == '+' || e.KeyChar == '-')
+            {
+                if (textBox.SelectionStart != 0 || textBox.Text.Contains("+") || textBox.Text.Contains("-"))
                 {
-                    evenIndices[i / 2] = array[i];
-                    evenSum += array[i];
+                    e.Handled = true;
                 }
-                else
+                return;
+            }
+
+            if (e.KeyChar == ',' || e.KeyChar == '.')
+            {
+                if (textBox.Text.Contains(",") || textBox.Text.Contains(".") || textBox.Text.Length == 0)
                 {
-                    oddIndices[i / 2] = array[i];
-                    oddSum += array[i];
+                    e.Handled = true;
                 }
+                return;
             }
 
-            txtResults1D.Text = "Массив с четными индексами: ";
-            txtResults1D.Text += string.Join(", ", evenIndices) + "\r\n";
-            txtResults1D.Text += $"Сумма элементов с четными индексами: {evenSum}\r\n\r\n";
-            txtResults1D.Text += "Массив с нечетными индексами: ";
-            txtResults1D.Text += string.Join(", ", oddIndices) + "\r\n";
-            txtResults1D.Text += $"Сумма элементов с нечетными индексами: {oddSum}";
+            if (!char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
 
-        private void Task1D_3()
+        private void ApplyTableColors()
         {
-            int firstNegative = int.MaxValue;
-            int lastPositive = int.MinValue;
-            bool foundNegative = false;
-            bool foundPositive = false;
-
-            for (int i = 0; i < array.Length; i++)
-            {
-                if (array[i] < 0 && !foundNegative)
-                {
-                    firstNegative = array[i];
-                    foundNegative = true;
-                }
-                if (array[i] > 0)
-                {
-                    lastPositive = array[i];
-                    foundPositive = true;
-                }
-            }
-
-            if (!foundNegative || !foundPositive)
-            {
-                txtResults1D.Text = "В массиве нет отрицательных или положительных элементов";
-                return;
-            }
-
-            double average = (firstNegative + lastPositive) / 2.0;
-            txtResults1D.Text = $"Первый отрицательный элемент: {firstNegative}\r\n";
-            txtResults1D.Text += $"Последний положительный элемент: {lastPositive}\r\n";
-            txtResults1D.Text += $"Среднее арифметическое: {average:F2}";
+            dgvResults.DefaultCellStyle.ForeColor = dgvForeColor;
+            dgvResults.DefaultCellStyle.BackColor = dgvBackColor;
+            dgvResults.GridColor = dgvGridColor;
         }
 
-        private void Task1D_4()
+        private void ApplyChartColors()
         {
-            int maxPositive = int.MinValue;
-            int maxPositiveIndex = -1;
-
-            for (int i = 0; i < array.Length; i++)
-            {
-                if (array[i] > 0 && array[i] > maxPositive)
-                {
-                    maxPositive = array[i];
-                    maxPositiveIndex = i;
-                }
-            }
-
-            if (maxPositiveIndex == -1)
-            {
-                txtResults1D.Text = "В массиве нет положительных элементов";
-                return;
-            }
-
-            int negativeCount = 0;
-            for (int i = 0; i < maxPositiveIndex; i++)
-            {
-                if (array[i] < 0)
-                    negativeCount++;
-            }
-
-            txtResults1D.Text = $"Наибольший положительный элемент: {maxPositive}\r\n";
-            txtResults1D.Text += $"Его индекс: {maxPositiveIndex}\r\n";
-            txtResults1D.Text += $"Количество отрицательных элементов перед ним: {negativeCount}";
+            chart1.Series[0].Color = chartLineColor;
+            chart1.ChartAreas[0].BackColor = chartBackColor;
         }
 
-        private void Task1D_5()
+        private void цветТекстаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            int firstPositiveIndex = -1;
-            int lastPositiveIndex = -1;
-
-            for (int i = 0; i < array.Length; i++)
+            Form2 form2 = new Form2();
+            form2.SettingType = "TableForeColor";
+            if (form2.ShowDialog() == DialogResult.OK)
             {
-                if (array[i] > 0)
-                {
-                    if (firstPositiveIndex == -1)
-                        firstPositiveIndex = i;
-                    lastPositiveIndex = i;
-                }
+                ApplyTableColors();
             }
-
-            if (firstPositiveIndex == -1 || firstPositiveIndex == lastPositiveIndex)
-            {
-                txtResults1D.Text = "Недостаточно положительных элементов для обмена";
-                return;
-            }
-
-            int temp = array[firstPositiveIndex];
-            array[firstPositiveIndex] = array[lastPositiveIndex];
-            array[lastPositiveIndex] = temp;
-
-            lstArray.Items.Clear();
-            foreach (int num in array)
-                lstArray.Items.Add(num);
-
-            txtResults1D.Text = $"Поменяны местами элементы:\r\n";
-            txtResults1D.Text += $"Индекс {firstPositiveIndex} (было {array[lastPositiveIndex]}, стало {array[firstPositiveIndex]})\r\n";
-            txtResults1D.Text += $"Индекс {lastPositiveIndex} (было {temp}, стало {array[lastPositiveIndex]})";
         }
 
-        private void Task1D_6()
+        private void цветФонаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (array.Length != 10)
+            Form2 form2 = new Form2();
+            form2.SettingType = "TableBackColor";
+            if (form2.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("Для этого задания массив должен содержать 10 элементов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                ApplyTableColors();
             }
-
-            int sum = 0;
-            foreach (int num in array)
-                sum += num;
-
-            double average = sum / 10.0;
-
-            txtResults1D.Text = $"Сумма элементов: {sum}\r\n";
-            txtResults1D.Text += $"Среднее арифметическое: {average:F2}";
         }
 
-        private void Task1D_7()
+        private void цветСеткиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (array.Length != 20)
+            Form2 form2 = new Form2();
+            form2.SettingType = "TableGridColor";
+            if (form2.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("Для этого задания массив должен содержать 20 элементов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                ApplyTableColors();
             }
-
-            int sum = 0;
-            foreach (int num in array)
-            {
-                if (num > 0)
-                    sum += num;
-            }
-
-            txtResults1D.Text = $"Сумма положительных элементов: {sum}";
         }
 
-        private void Task1D_8()
+        private void цветЛинииГрафикаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (array.Length != 20)
+            Form2 form2 = new Form2();
+            form2.SettingType = "ChartLineColor";
+            if (form2.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("Для этого задания массив должен содержать 20 элементов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                ApplyChartColors();
             }
-
-            int sum = 0;
-            foreach (int num in array)
-            {
-                if (num % 2 == 0)
-                    sum += num;
-            }
-
-            txtResults1D.Text = $"Сумма четных элементов: {sum}";
         }
 
-        private void Task1D_9()
+        private void цветФонаГрафикаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (array.Length != 20)
+            Form2 form2 = new Form2();
+            form2.SettingType = "ChartBackColor";
+            if (form2.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("Для этого задания массив должен содержать 20 элементов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                ApplyChartColors();
             }
-
-            int count = 0;
-            foreach (int num in array)
-            {
-                if (num > 0)
-                    count++;
-            }
-
-            txtResults1D.Text = $"Количество положительных элементов: {count}";
         }
 
-        private void Task1D_10()
+        private void сохранитьДанныеТаблицыВФайлToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (array.Length != 20)
+            if (dgvResults.Rows.Count == 0)
             {
-                MessageBox.Show("Для этого задания массив должен содержать 20 элементов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Таблица пуста. Сначала перейдите на вкладку 'Таблица данных'", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            List<int> indices = new List<int>();
-            for (int i = 0; i < array.Length; i++)
-            {
-                if (array[i] > 0)
-                    indices.Add(i);
-            }
-
-            if (indices.Count == 0)
-            {
-                txtResults1D.Text = "В массиве нет положительных элементов";
-                return;
-            }
-
-            txtResults1D.Text = "Индексы положительных элементов:\r\n";
-            txtResults1D.Text += string.Join(", ", indices);
-        }
-
-        private void btnSave1D_Click(object sender, EventArgs e)
-        {
-            if (array == null || array.Length == 0)
-            {
-                MessageBox.Show("Нет данных для сохранения", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            saveFileDialog1.Filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
+            saveFileDialog1.Title = "Сохранить данные таблицы";
+            saveFileDialog1.DefaultExt = "txt";
 
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 using (System.IO.StreamWriter sw = new System.IO.StreamWriter(saveFileDialog1.FileName))
                 {
-                    sw.WriteLine(array.Length);
-                    for (int i = 0; i < array.Length; i++)
+                    sw.WriteLine("X\t\tY");
+                    sw.WriteLine(new string('-', 50));
+
+                    foreach (DataGridViewRow row in dgvResults.Rows)
                     {
-                        sw.WriteLine(array[i]);
+                        if (row.Cells[0].Value != null && row.Cells[1].Value != null)
+                        {
+                            sw.WriteLine($"{row.Cells[0].Value}\t\t{row.Cells[1].Value}");
+                        }
                     }
+
+                    sw.WriteLine(new string('-', 50));
+                    sw.WriteLine($"Ymax: {txtYmax.Text}");
+                    sw.WriteLine($"Ymin: {txtYmin.Text}");
                 }
 
-                MessageBox.Show("Массив успешно сохранен", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Данные успешно сохранены", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
-        private void btnLoad1D_Click(object sender, EventArgs e)
+        private void btnExit_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    using (System.IO.StreamReader sr = new System.IO.StreamReader(openFileDialog1.FileName))
-                    {
-                        string line = sr.ReadLine();
-                        if (!int.TryParse(line, out int n) || n <= 0)
-                        {
-                            MessageBox.Show("Некорректный формат файла", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        array = new int[n];
-                        lstArray.Items.Clear();
-
-                        for (int i = 0; i < n; i++)
-                        {
-                            line = sr.ReadLine();
-                            if (int.TryParse(line, out int value))
-                            {
-                                array[i] = value;
-                                lstArray.Items.Add(value);
-                            }
-                            else
-                            {
-                                MessageBox.Show("Некорректные данные в файле", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                array = null;
-                                lstArray.Items.Clear();
-                                return;
-                            }
-                        }
-
-                        txtN.Text = n.ToString();
-                        txtResults1D.Clear();
-                        MessageBox.Show("Массив успешно загружен", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка при чтении файла: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
+            Application.Exit();
         }
 
-        private void btnClear1D_Click(object sender, EventArgs e)
+        private void выходToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            array = null;
-            lstArray.Items.Clear();
-            txtResults1D.Clear();
-            txtN.Clear();
+            Application.Exit();
         }
 
-        private void btnGenerate2D_Click(object sender, EventArgs e)
+        private void выходToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtRows.Text) || string.IsNullOrWhiteSpace(txtCols.Text))
-            {
-                MessageBox.Show("Введите количество строк и столбцов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!int.TryParse(txtRows.Text, out rows) || rows <= 0 || rows > 20 ||
-                !int.TryParse(txtCols.Text, out cols) || cols <= 0 || cols > 20)
-            {
-                MessageBox.Show("Размеры должны быть числами от 1 до 20", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            matrix = new int[rows, cols];
-            Random rand = new Random();
-
-            dgvMatrix.Rows.Clear();
-            dgvMatrix.Columns.Clear();
-
-            for (int j = 0; j < cols; j++)
-            {
-                dgvMatrix.Columns.Add($"col{j}", $"{j}");
-                dgvMatrix.Columns[j].Width = 50;
-            }
-
-            for (int i = 0; i < rows; i++)
-            {
-                dgvMatrix.Rows.Add();
-                for (int j = 0; j < cols; j++)
-                {
-                    matrix[i, j] = rand.Next(-100, 101);
-                    dgvMatrix.Rows[i].Cells[j].Value = matrix[i, j];
-                }
-            }
-
-            txtResults2D.Clear();
-        }
-
-        private void btnAnalyze2D_Click(object sender, EventArgs e)
-        {
-            if (matrix == null)
-            {
-                MessageBox.Show("Сначала сгенерируйте матрицу", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            txtResults2D.Clear();
-
-            if (rbTask2D_1.Checked)
-                Task2D_1();
-            else if (rbTask2D_2.Checked)
-                Task2D_2();
-            else if (rbTask2D_3.Checked)
-                Task2D_3();
-            else if (rbTask2D_4.Checked)
-                Task2D_4();
-            else if (rbTask2D_5.Checked)
-                Task2D_5();
-            else if (rbTask2D_6.Checked)
-                Task2D_6();
-            else if (rbTask2D_7.Checked)
-                Task2D_7();
-            else if (rbTask2D_8.Checked)
-                Task2D_8();
-            else if (rbTask2D_9.Checked)
-                Task2D_9();
-            else if (rbTask2D_10.Checked)
-                Task2D_10();
-        }
-
-        private void Task2D_1()
-        {
-            txtResults2D.Text = "Сумма элементов в каждом столбце:\r\n";
-            for (int j = 0; j < cols; j++)
-            {
-                int sum = 0;
-                for (int i = 0; i < rows; i++)
-                {
-                    sum += matrix[i, j];
-                }
-                txtResults2D.Text += $"Столбец {j}: {sum}\r\n";
-            }
-        }
-
-        private void Task2D_2()
-        {
-            txtResults2D.Text = "Произведение элементов в каждом столбце:\r\n";
-            for (int j = 0; j < cols; j++)
-            {
-                long product = 1;
-                for (int i = 0; i < rows; i++)
-                {
-                    product *= matrix[i, j];
-                }
-                txtResults2D.Text += $"Столбец {j}: {product}\r\n";
-            }
-        }
-
-        private void Task2D_3()
-        {
-            txtResults2D.Text = "Произведение элементов в каждой строке:\r\n";
-            for (int i = 0; i < rows; i++)
-            {
-                long product = 1;
-                for (int j = 0; j < cols; j++)
-                {
-                    product *= matrix[i, j];
-                }
-                txtResults2D.Text += $"Строка {i}: {product}\r\n";
-            }
-        }
-
-        private void Task2D_4()
-        {
-            int minSize = Math.Min(rows, cols);
-            long product = 1;
-
-            for (int i = 0; i < minSize; i++)
-            {
-                product *= matrix[i, i];
-            }
-
-            txtResults2D.Text = $"Произведение диагональных элементов: {product}";
-        }
-
-        private void Task2D_5()
-        {
-            int minSize = Math.Min(rows, cols);
-            int sum = 0;
-
-            for (int i = 0; i < minSize; i++)
-            {
-                sum += matrix[i, cols - 1 - i];
-            }
-
-            txtResults2D.Text = $"Сумма элементов на побочной диагонали: {sum}";
-        }
-
-        private void Task2D_6()
-        {
-            int minColumn = 0;
-            int minCount = int.MaxValue;
-
-            for (int j = 0; j < cols; j++)
-            {
-                int count = 0;
-                for (int i = 0; i < rows; i++)
-                {
-                    if (matrix[i, j] > 0)
-                        count++;
-                }
-                if (count < minCount)
-                {
-                    minCount = count;
-                    minColumn = j;
-                }
-            }
-
-            txtResults2D.Text = $"Столбец с наименьшим количеством положительных: {minColumn}\r\n";
-            txtResults2D.Text += $"Количество положительных элементов: {minCount}";
-        }
-
-        private void Task2D_7()
-        {
-            int minRow = 0;
-            int minCount = int.MaxValue;
-
-            for (int i = 0; i < rows; i++)
-            {
-                int count = 0;
-                for (int j = 0; j < cols; j++)
-                {
-                    if (matrix[i, j] > 0)
-                        count++;
-                }
-                if (count < minCount)
-                {
-                    minCount = count;
-                    minRow = i;
-                }
-            }
-
-            txtResults2D.Text = $"Строка с наименьшим количеством положительных: {minRow}\r\n";
-            txtResults2D.Text += $"Количество положительных элементов: {minCount}";
-        }
-
-        private void Task2D_8()
-        {
-            int maxRow = 0;
-            int maxCount = int.MinValue;
-
-            for (int i = 0; i < rows; i++)
-            {
-                int count = 0;
-                for (int j = 0; j < cols; j++)
-                {
-                    if (matrix[i, j] % 2 == 0)
-                        count++;
-                }
-                if (count > maxCount)
-                {
-                    maxCount = count;
-                    maxRow = i;
-                }
-            }
-
-            txtResults2D.Text = $"Строка с наибольшим количеством четных: {maxRow}\r\n";
-            txtResults2D.Text += $"Количество четных элементов: {maxCount}";
-        }
-
-        private void Task2D_9()
-        {
-            int maxColumn = 0;
-            int maxCount = int.MinValue;
-
-            for (int j = 0; j < cols; j++)
-            {
-                int count = 0;
-                for (int i = 0; i < rows; i++)
-                {
-                    if (matrix[i, j] % 5 == 0 && matrix[i, j] != 0)
-                        count++;
-                }
-                if (count > maxCount)
-                {
-                    maxCount = count;
-                    maxColumn = j;
-                }
-            }
-
-            txtResults2D.Text = $"Столбец с наибольшим количеством кратных 5: {maxColumn}\r\n";
-            txtResults2D.Text += $"Количество элементов кратных 5: {maxCount}";
-        }
-
-        private void Task2D_10()
-        {
-            int minEven = int.MaxValue;
-            bool found = false;
-
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    if (matrix[i, j] % 2 == 0 && matrix[i, j] < minEven)
-                    {
-                        minEven = matrix[i, j];
-                        found = true;
-                    }
-                }
-            }
-
-            if (!found)
-            {
-                txtResults2D.Text = "В матрице нет четных чисел";
-                return;
-            }
-
-            txtResults2D.Text = $"Наименьшее четное число в матрице: {minEven}";
-        }
-
-        private void btnSave2D_Click(object sender, EventArgs e)
-        {
-            if (matrix == null)
-            {
-                MessageBox.Show("Нет данных для сохранения", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(saveFileDialog1.FileName))
-                {
-                    sw.WriteLine($"{rows} {cols}");
-                    for (int i = 0; i < rows; i++)
-                    {
-                        for (int j = 0; j < cols; j++)
-                        {
-                            sw.Write(matrix[i, j]);
-                            if (j < cols - 1)
-                                sw.Write(" ");
-                        }
-                        sw.WriteLine();
-                    }
-                }
-
-                MessageBox.Show("Матрица успешно сохранена", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
-        private void btnLoad2D_Click(object sender, EventArgs e)
-        {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    using (System.IO.StreamReader sr = new System.IO.StreamReader(openFileDialog1.FileName))
-                    {
-                        string line = sr.ReadLine();
-                        string[] dims = line.Split(' ');
-
-                        if (dims.Length != 2 || !int.TryParse(dims[0], out rows) || !int.TryParse(dims[1], out cols) ||
-                            rows <= 0 || rows > 20 || cols <= 0 || cols > 20)
-                        {
-                            MessageBox.Show("Некорректный формат файла", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        matrix = new int[rows, cols];
-                        dgvMatrix.Rows.Clear();
-                        dgvMatrix.Columns.Clear();
-
-                        for (int j = 0; j < cols; j++)
-                        {
-                            dgvMatrix.Columns.Add($"col{j}", $"{j}");
-                            dgvMatrix.Columns[j].Width = 50;
-                        }
-
-                        for (int i = 0; i < rows; i++)
-                        {
-                            line = sr.ReadLine();
-                            string[] values = line.Split(' ');
-
-                            if (values.Length != cols)
-                            {
-                                MessageBox.Show("Некорректные данные в файле", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                matrix = null;
-                                dgvMatrix.Rows.Clear();
-                                dgvMatrix.Columns.Clear();
-                                return;
-                            }
-
-                            dgvMatrix.Rows.Add();
-                            for (int j = 0; j < cols; j++)
-                            {
-                                if (int.TryParse(values[j], out int value))
-                                {
-                                    matrix[i, j] = value;
-                                    dgvMatrix.Rows[i].Cells[j].Value = value;
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Некорректные данные в файле", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    matrix = null;
-                                    dgvMatrix.Rows.Clear();
-                                    dgvMatrix.Columns.Clear();
-                                    return;
-                                }
-                            }
-                        }
-
-                        txtRows.Text = rows.ToString();
-                        txtCols.Text = cols.ToString();
-                        txtResults2D.Clear();
-                        MessageBox.Show("Матрица успешно загружена", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка при чтении файла: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void btnClear2D_Click(object sender, EventArgs e)
-        {
-            matrix = null;
-            dgvMatrix.Rows.Clear();
-            dgvMatrix.Columns.Clear();
-            txtResults2D.Clear();
-            txtRows.Clear();
-            txtCols.Clear();
+            Application.Exit();
         }
     }
 }
