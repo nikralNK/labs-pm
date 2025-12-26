@@ -151,7 +151,7 @@
             MaximizeBox = false;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Работа с массивом - Студент ИСПП-242";
+            Text = "Выполнил студент группы ИСПП-242 Кузнецова В. Б.";
             grpOperations.ResumeLayout(false);
             grpOperations.PerformLayout();
             ResumeLayout(false);
