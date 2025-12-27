@@ -7,6 +7,16 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <StackPanel Margin="20">
+            <Button Content="Сгенерировать массив" Height="35" Click="GenerateButton_Click" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Исходный массив:" FontSize="14" Margin="0,0,0,10"/>
+            <TextBox x:Name="ArrayTextBox" Height="30" IsReadOnly="True" Margin="0,0,0,20"/>
+
+            <Button Content="Удалить повторяющиеся > 2 раз" Height="35" Click="RemoveButton_Click" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Результат:" FontSize="14" Margin="0,0,0,10"/>
+            <TextBox x:Name="ResultTextBox" Height="30" IsReadOnly="True"/>
+        </StackPanel>
     </Grid>
 </Window>
