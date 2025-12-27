@@ -7,6 +7,12 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <StackPanel Margin="20" VerticalAlignment="Center">
+            <TextBlock Text="Введите строку:" FontSize="14" Margin="0,0,0,10"/>
+            <TextBox x:Name="InputTextBox" Height="30" FontSize="14" Margin="0,0,0,20"/>
+            <Button Content="Найти макс. пробелы" Height="35" Click="FindButton_Click" Margin="0,0,0,20"/>
+            <TextBlock Text="Результат:" FontSize="14" Margin="0,0,0,10"/>
+            <TextBox x:Name="ResultTextBox" Height="30" FontSize="14" IsReadOnly="True"/>
+        </StackPanel>
     </Grid>
 </Window>
