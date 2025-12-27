@@ -15,14 +15,28 @@ using System.Windows.Shapes;
 
 namespace Task5
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void InsertButton_Click(object sender, RoutedEventArgs e)
+        {
+            string input = InputTextBox.Text;
+            string result = "";
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                result = result + input[i];
+                if (input[i] == 'a')
+                {
+                    result = result + 'b';
+                }
+            }
+
+            ResultTextBox.Text = result;
         }
     }
 }
