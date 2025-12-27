@@ -15,14 +15,28 @@ using System.Windows.Shapes;
 
 namespace Task11
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void CountButton_Click(object sender, RoutedEventArgs e)
+        {
+            string input = InputTextBox.Text;
+            string[] words = input.Split(' ');
+            int count = 0;
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i] != "")
+                {
+                    count = count + 1;
+                }
+            }
+
+            ResultTextBox.Text = count.ToString();
         }
     }
 }
