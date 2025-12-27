@@ -15,14 +15,34 @@ using System.Windows.Shapes;
 
 namespace Task1
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void CalculateButton_Click(object sender, RoutedEventArgs e)
+        {
+            string input = InputTextBox.Text;
+            string[] parts = input.Split(',');
+            int[] numbers = new int[parts.Length];
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                numbers[i] = int.Parse(parts[i].Trim());
+            }
+
+            int sum = 0;
+            for (int i = 0; i < numbers.Length; i++)
+            {
+                if (numbers[i] % 2 != 0)
+                {
+                    sum = sum + numbers[i];
+                }
+            }
+
+            ResultTextBox.Text = sum.ToString();
         }
     }
 }
