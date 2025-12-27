@@ -35,6 +35,17 @@ namespace Task1
                     numbers[i] = int.Parse(parts[i].Trim());
                 }
 
+                string arrayText = "";
+                for (int i = 0; i < numbers.Length; i++)
+                {
+                    arrayText = arrayText + numbers[i];
+                    if (i < numbers.Length - 1)
+                    {
+                        arrayText = arrayText + ", ";
+                    }
+                }
+                ArrayTextBox.Text = arrayText;
+
                 int sum = 0;
                 for (int i = 0; i < numbers.Length; i++)
                 {
@@ -48,6 +59,7 @@ namespace Task1
             }
             catch
             {
+                ArrayTextBox.Text = "";
                 ResultTextBox.Text = "Ошибка ввода";
             }
         }
