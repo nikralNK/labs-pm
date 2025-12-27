@@ -24,25 +24,32 @@ namespace Task1
 
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
-            string input = InputTextBox.Text;
-            string[] parts = input.Split(',');
-            int[] numbers = new int[parts.Length];
-
-            for (int i = 0; i < parts.Length; i++)
+            try
             {
-                numbers[i] = int.Parse(parts[i].Trim());
-            }
+                string input = InputTextBox.Text;
+                string[] parts = input.Split(',');
+                int[] numbers = new int[parts.Length];
 
-            int sum = 0;
-            for (int i = 0; i < numbers.Length; i++)
-            {
-                if (numbers[i] % 2 != 0)
+                for (int i = 0; i < parts.Length; i++)
                 {
-                    sum = sum + numbers[i];
+                    numbers[i] = int.Parse(parts[i].Trim());
                 }
-            }
 
-            ResultTextBox.Text = sum.ToString();
+                int sum = 0;
+                for (int i = 0; i < numbers.Length; i++)
+                {
+                    if (numbers[i] % 2 != 0)
+                    {
+                        sum = sum + numbers[i];
+                    }
+                }
+
+                ResultTextBox.Text = sum.ToString();
+            }
+            catch
+            {
+                ResultTextBox.Text = "Ошибка ввода";
+            }
         }
     }
 }
