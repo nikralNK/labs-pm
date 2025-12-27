@@ -15,14 +15,25 @@ using System.Windows.Shapes;
 
 namespace Task3
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void SwapButton_Click(object sender, RoutedEventArgs e)
+        {
+            string text = InputTextBox.Text;
+            string[] words = text.Split(' ');
+
+            if (words.Length == 2)
+            {
+                string temp = words[0];
+                words[0] = words[1];
+                words[1] = temp;
+                InputTextBox.Text = words[0] + " " + words[1];
+            }
         }
     }
 }
